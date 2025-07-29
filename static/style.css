@@ -1,0 +1,283 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f4f7f6;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+}
+
+.container {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    max-width: 1000px; /* Wider container */
+    width: 100%;
+    box-sizing: border-box;
+}
+
+h1 {
+    color: #34495e;
+    text-align: center;
+    margin-bottom: 10px;
+    font-size: 2em;
+    font-weight: bold;
+}
+
+p {
+    text-align: center;
+    color: #7f8c8d;
+    margin-bottom: 30px;
+}
+
+.card {
+    background-color: #ecf0f1;
+    border: 1px solid #dfe6e9;
+    border-radius: 6px;
+    padding: 20px;
+    margin-bottom: 25px;
+}
+
+.card h2 {
+    color: #2c3e50;
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.4em;
+    display: flex;
+    align-items: center;
+}
+
+.card h2 .icon {
+    width: 24px;
+    height: 24px;
+    margin-right: 10px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    /* Placeholder for icons */
+}
+
+.card h2:nth-child(1) .icon { /* Carregar Imagens */
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%232c3e50"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+}
+
+.card h2:nth-child(2) .icon { /* Resultados da Análise */
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%232c3e50"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 4.41L18.41 11 20 9.41 12 1.41 4 9.41 5.59 11 12 4.41zM11 20h2v2h-2zm-4 0h2v2H7zm8 0h2v2h-2zm-4-10h2v8h-2zm-4 0h2v8H7zm8 0h2v8h-2z"/></svg>');
+}
+
+.card h2:nth-child(3) .icon { /* Imagens de Debug */
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%232c3e50"><path d="M0 0h24v24H0z" fill="none"/><path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>');
+}
+
+
+/* Upload Area Styling */
+.upload-area {
+    border: 2px dashed #95a5a6;
+    border-radius: 5px;
+    padding: 30px;
+    text-align: center;
+    cursor: pointer;
+    background-color: #f9fbfb;
+    transition: all 0.3s ease;
+}
+
+.upload-area:hover, .upload-area.drag-over {
+    background-color: #e0f2f7;
+    border-color: #3498db;
+}
+
+.upload-area p {
+    margin: 5px 0;
+    color: #555;
+    font-size: 1.1em;
+}
+
+.upload-area .small-text {
+    font-size: 0.85em;
+    color: #7f8c8d;
+}
+
+.selected-files {
+    margin-top: 15px;
+    padding: 10px;
+    background-color: #eaf6ff;
+    border: 1px solid #cce7ff;
+    border-radius: 4px;
+    display: none; /* Hidden by default */
+}
+
+.selected-files p {
+    margin: 0;
+    text-align: left;
+    font-size: 0.95em;
+    color: #34495e;
+}
+
+
+/* Button Styling */
+.button-primary, .button-secondary, .button-download {
+    display: inline-block;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 15px;
+    text-decoration: none; /* For download link */
+    text-align: center;
+}
+
+.button-primary {
+    background-color: #3498db;
+    color: white;
+}
+
+.button-primary:hover:not(:disabled) {
+    background-color: #2980b9;
+}
+
+.button-primary:disabled {
+    background-color: #bdc3c7;
+    cursor: not-allowed;
+}
+
+.button-secondary {
+    background-color: #e74c3c;
+    color: white;
+    margin-left: 10px;
+}
+
+.button-secondary:hover {
+    background-color: #c0392b;
+}
+
+.button-download {
+    background-color: #27ae60;
+    color: white;
+    margin-top: 20px;
+    width: auto; /* Adjust width for button */
+}
+
+.button-download:hover {
+    background-color: #219856;
+}
+
+/* Table Styling */
+.table-container {
+    overflow-x: auto; /* Allows horizontal scrolling for large tables */
+    margin-top: 20px;
+}
+
+#resultsTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+#resultsTable th, #resultsTable td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+
+#resultsTable th {
+    background-color: #dbe4eb;
+    color: #34495e;
+    font-weight: bold;
+    white-space: nowrap; /* Prevent headers from wrapping */
+}
+
+#resultsTable tbody tr:nth-child(even) {
+    background-color: #f8f8f8;
+}
+
+#resultsTable tbody tr:hover {
+    background-color: #eef7ff;
+}
+
+.answer-sim {
+    color: #27ae60; /* Green for SIM */
+    font-weight: bold;
+}
+
+.answer-nao {
+    color: #e74c3c; /* Red for NÃO */
+    font-weight: bold;
+}
+
+.answer-error {
+    color: #e67e22; /* Orange for errors/warnings */
+    font-weight: bold;
+}
+
+/* Debug Images Styling */
+.debug-images-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-top: 20px;
+    justify-content: center;
+}
+
+.debug-image-wrapper {
+    text-align: center;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    background-color: #fff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.debug-image-wrapper img {
+    max-width: 180px; /* Smaller thumbnails */
+    height: auto;
+    border-radius: 4px;
+    display: block;
+    margin: 0 auto 8px auto; /* Center image and add spacing */
+}
+
+.debug-image-wrapper p {
+    font-size: 0.8em;
+    color: #555;
+    margin: 0;
+    word-break: break-all; /* Break long file names */
+}
+
+/* Loading Overlay */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.8);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.spinner {
+    border: 8px solid #f3f3f3;
+    border-top: 8px solid #3498db;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-overlay p {
+    font-size: 1.2em;
+    color: #34495e;
+}

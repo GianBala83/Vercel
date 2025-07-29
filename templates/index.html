@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analisador de Formulários</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Analisador de Formulários</h1>
+        <p>Processe múltiplas imagens de formulários e analise as respostas automaticamente</p>
+
+        <div class="card">
+            <h2><span class="icon"></span> Carregar Imagens</h2>
+            <div class="upload-area" id="uploadArea">
+                <input type="file" id="fileInput" name="imagens" multiple accept=".png, .jpg, .jpeg" style="display: none;">
+                <p>Clique para selecionar múltiplas imagens</p>
+                <p class="small-text">PNG, JPG, JPEG - Selecione múltiplos arquivos</p>
+            </div>
+            <div id="selectedFiles" class="selected-files">
+                </div>
+            <button id="analyzeButton" class="button-primary" disabled>Analisar Formulários</button>
+            <button id="clearButton" class="button-secondary" style="display: none;">Limpar</button>
+        </div>
+
+        <div class="card" id="resultsCard" style="display: none;">
+            <h2><span class="icon"></span> Resultados da Análise</h2>
+            <div class="table-container">
+                <table id="resultsTable">
+                    <thead>
+                        <tr>
+                            <th>Arquivo</th>
+                            </tr>
+                    </thead>
+                    <tbody>
+                        </tbody>
+                </table>
+            </div>
+            <button id="downloadCsvButton" class="button-download" style="display: none;">Baixar CSV</button>
+        </div>
+
+        <div class="card" id="debugImagesCard" style="display: none;">
+            <h2><span class="icon"></span> Imagens de Debug</h2>
+            <div id="debugImagesContainer" class="debug-images-container">
+                </div>
+        </div>
+    </div>
+
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="spinner"></div>
+        <p>Analisando imagens...</p>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const selectedFilesDiv = document.getElementById('selectedFiles');
+        const analyzeButton = document.getElementById('analyzeButton');
+        const clearButton = document.getElementById('clearButton');
+        const resultsCard = document.getElementById('resultsCard');
+        const resultsTable = document.getElementById('resultsTable');
+        const debugImagesCard = document.getElementById('debugImagesCard');
+        const debugImagesContainer = document.getElementById('debugImagesContainer');
+        const downloadCsvButton = document.getElementById('downloadCsvButton');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+
+        let filesToUpload = [];
+
+        // Add drag and drop functionality
+        uploadArea.addEventListener('click', () => fileInput.click());
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('drag-over');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('drag-over');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('drag-over');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(files) {
+            filesToUpload = Array.from(files).filter(file => {
+                const fileType = file.type;
+                return fileType === 'image/png' || fileType === 'image/jpeg';
+            });
+            displaySelectedFiles();
+            updateAnalyzeButtonState();
+        }
+
+        function displaySelectedFiles() {
+            selectedFilesDiv.innerHTML = '';
+            if (filesToUpload.length > 0) {
+                const countText = document.createElement('p');
+                countText.textContent = `${filesToUpload.length} arquivo(s) selecionado(s)`;
+                selectedFilesDiv.appendChild(countText);
+                selectedFilesDiv.style.display = 'block';
+                clearButton.style.display = 'block'; // Show clear button
+            } else {
+                selectedFilesDiv.style.display = 'none';
+                clearButton.style.display = 'none'; // Hide clear button
+            }
+        }
+
+        function updateAnalyzeButtonState() {
+            analyzeButton.disabled = filesToUpload.length === 0;
+        }
+
+        clearButton.addEventListener('click', () => {
+            filesToUpload = [];
+            fileInput.value = ''; // Clear file input
+            displaySelectedFiles();
+            updateAnalyzeButtonState();
+            // Hide results and debug images sections
+            resultsCard.style.display = 'none';
+            debugImagesCard.style.display = 'none';
+            downloadCsvButton.style.display = 'none';
+            resultsTable.innerHTML = `<thead><tr><th>Arquivo</th></tr></thead><tbody></tbody>`; // Reset table
+            debugImagesContainer.innerHTML = ''; // Clear debug images
+        });
+
+
+        analyzeButton.addEventListener('click', async () => {
+            if (filesToUpload.length === 0) {
+                alert('Por favor, selecione pelo menos uma imagem para analisar.');
+                return;
+            }
+
+            loadingOverlay.style.display = 'flex'; // Show loading overlay
+
+            const formData = new FormData();
+            filesToUpload.forEach(file => {
+                formData.append('imagens', file);
+            });
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    displayResults(data.results);
+                    displayDebugImages(data.debug_images);
+                    downloadCsvButton.href = data.csv_download_url;
+                    downloadCsvButton.style.display = 'block';
+                    resultsCard.style.display = 'block';
+                    debugImagesCard.style.display = 'block';
+                } else {
+                    alert('Erro na análise: ' + data.message);
+                    resultsCard.style.display = 'none';
+                    debugImagesCard.style.display = 'none';
+                    downloadCsvButton.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Erro ao enviar imagens:', error);
+                alert('Ocorreu um erro ao conectar com o servidor.');
+                resultsCard.style.display = 'none';
+                debugImagesCard.style.display = 'none';
+                downloadCsvButton.style.display = 'none';
+            } finally {
+                loadingOverlay.style.display = 'none'; // Hide loading overlay
+            }
+        });
+
+        function displayResults(results) {
+            resultsTable.innerHTML = ''; // Clear previous results
+
+            if (results.length === 0) {
+                resultsTable.innerHTML = '<tbody><tr><td colspan="7">Nenhum resultado para exibir.</td></tr></tbody>';
+                return;
+            }
+
+            // Create table headers
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            
+            // Add 'Arquivo' header
+            const fileHeader = document.createElement('th');
+            fileHeader.textContent = 'Arquivo';
+            headerRow.appendChild(fileHeader);
+
+            // Dynamically add question headers, sorted numerically
+            const sampleResult = results[0];
+            const questionKeys = Object.keys(sampleResult)
+                .filter(key => key !== 'Arquivo' && key !== 'Status') // Exclude 'Arquivo' and 'Status'
+                .sort((a, b) => {
+                    const numA = parseInt(a.replace('Questão ', ''));
+                    const numB = parseInt(b.replace('Questão ', ''));
+                    return numA - numB;
+                });
+            
+            questionKeys.forEach(key => {
+                const th = document.createElement('th');
+                th.textContent = key;
+                headerRow.appendChild(th);
+            });
+
+            // Add 'Status' header if it exists
+            if (Object.keys(sampleResult).includes('Status')) {
+                const statusHeader = document.createElement('th');
+                statusHeader.textContent = 'Status';
+                headerRow.appendChild(statusHeader);
+            }
+
+            thead.appendChild(headerRow);
+            resultsTable.appendChild(thead);
+
+            // Create table body
+            const tbody = document.createElement('tbody');
+            results.forEach(row => {
+                const tr = document.createElement('tr');
+
+                // Add file name cell
+                const tdFile = document.createElement('td');
+                tdFile.textContent = row['Arquivo'];
+                tr.appendChild(tdFile);
+
+                // Add question answer cells
+                questionKeys.forEach(key => {
+                    const td = document.createElement('td');
+                    td.textContent = row[key];
+                    if (row[key] === 'SIM') {
+                        td.classList.add('answer-sim');
+                    } else if (row[key] === 'NÃO') {
+                        td.classList.add('answer-nao');
+                    } else if (row[key] === 'Coordenadas fora dos limites') {
+                        td.classList.add('answer-error');
+                    }
+                    tr.appendChild(td);
+                });
+
+                // Add status cell if it exists
+                if (Object.keys(row).includes('Status')) {
+                    const tdStatus = document.createElement('td');
+                    tdStatus.textContent = row['Status'];
+                    tdStatus.classList.add('answer-error'); // Style status errors
+                    tr.appendChild(tdStatus);
+                }
+
+                tbody.appendChild(tr);
+            });
+            resultsTable.appendChild(tbody);
+        }
+
+        function displayDebugImages(debugImages) {
+            debugImagesContainer.innerHTML = ''; // Clear previous debug images
+            debugImages.forEach(imgInfo => {
+                const imgWrapper = document.createElement('div');
+                imgWrapper.classList.add('debug-image-wrapper');
+
+                const img = document.createElement('img');
+                img.src = imgInfo.debug_image_url;
+                img.alt = `Debug Image for ${imgInfo.original_name}`;
+                img.loading = 'lazy'; // Lazy load images
+
+                const imgName = document.createElement('p');
+                imgName.textContent = imgInfo.original_name;
+
+                imgWrapper.appendChild(img);
+                imgWrapper.appendChild(imgName);
+                debugImagesContainer.appendChild(imgWrapper);
+            });
+        }
+    </script>
+</body>
+</html>
